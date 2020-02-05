@@ -1,16 +1,21 @@
 const PLAYER_X = 1
 const PLAYER_O = -1
 
-let turn = PLAYER_X
-
 const X_WON = PLAYER_X
 const O_WON = PLAYER_O
 const TIE = 'T'
 const IN_PLAY = null
 
-let winner = IN_PLAY
+let arrayOfCells
+let turn
+let winner
 
-const arrayOfCells = [null, null, null, null, null, null, null, null, null]
+const initializeState = function() {
+  arrayOfCells = [null, null, null, null, null, null, null, null, null]
+  turn = PLAYER_X
+  winner = IN_PLAY
+}
+initializeState()
 
 let cellElements = document.querySelectorAll('.cell')
 let gameMessageElement = document.querySelector('.message')
@@ -43,40 +48,42 @@ const winningCombinations = [
   [0, 4, 8],
 ]
 
-const didPlayerXWin = function() {
-  if (
-    arrayOfCells[winningCombinations[0][0]] === 1 &&
-    arrayOfCells[winningCombinations[0][1]] === 1 &&
-    arrayOfCells[2] === 1
-  ) {
-    return true
-  }
-}
-console.log(didPlayerXWin() === true)
-
-cellElements.forEach(function(cellElement, i) {
-  let cellValue = arrayOfCells[i]
-  let cellBackgroundColor = cellColorGuide[cellValue]
-  cellElement.style.backgroundColor = cellBackgroundColor
-})
-
-const getCurrentText = function() {
-  if (winner === IN_PLAY && turn === PLAYER_X) {
-    return `X's turn to play`
-  } else if (winner === IN_PLAY && turn === PLAYER_O) {
-    return `O's turn to play`
-  } else if (winner === TIE) {
-    return `TIE`
-  } else if (winner === X_WON) {
-    return 'Congrats! X has won the game'
-  } else if (winner === O_WON) {
-    return 'Congrats! O has won the game'
-  }
+const didPlayerWin = function() {
+  return winningCombinations.some(function(winningCombination) {
+    if (
+      arrayOfCells[winningCombination[0]] === turn &&
+      arrayOfCells[winningCombination[1]] === turn &&
+      arrayOfCells[winningCombination[2]] === turn
+    ) {
+      return true
+    }
+  })
 }
 
-console.log(getCurrentText() === "X's turn to play")
+const render = function() {
+  cellElements.forEach(function(cellElement, i) {
+    let cellValue = arrayOfCells[i]
+    let cellBackgroundColor = cellColorGuide[cellValue]
+    cellElement.style.backgroundColor = cellBackgroundColor
+  })
 
-gameMessageElement.textContent = getCurrentText()
+  const getCurrentText = function() {
+    if (winner === IN_PLAY && turn === PLAYER_X) {
+      return `X's turn to play`
+    } else if (winner === IN_PLAY && turn === PLAYER_O) {
+      return `O's turn to play`
+    } else if (winner === TIE) {
+      return `TIE`
+    } else if (winner === X_WON) {
+      return 'Congrats! X has won the game'
+    } else if (winner === O_WON) {
+      return 'Congrats! O has won the game'
+    }
+  }
+
+  gameMessageElement.textContent = getCurrentText()
+}
+render()
 
 cellElements.forEach(function(cellElement, i) {
   cellElement.addEventListener('click', function(event) {
@@ -89,11 +96,28 @@ cellElements.forEach(function(cellElement, i) {
     }
 
     arrayOfCells[i] = turn
+    let playerWon = didPlayerWin()
+    if (turn === PLAYER_X && playerWon) {
+      winner = X_WON
+    } else if (turn === PLAYER_O && playerWon) {
+      winner = O_WON
+    } else if (!arrayOfCells.includes(null)) {
+      winner = TIE
+    } else {
+      winner = IN_PLAY
+    }
 
     if (turn === PLAYER_X) {
       turn = PLAYER_O
     } else if (turn === PLAYER_O) {
       turn = PLAYER_X
     }
+    render()
   })
+})
+
+const button = document.querySelector('.btn')
+button.addEventListener('click', function(event){
+   initializeState()
+   render()
 })
